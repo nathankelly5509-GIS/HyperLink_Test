@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Wetland Cross-Section Analysis - Tower Land Company</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+    Chart.defaults.elements.point.radius = 0;
+    Chart.defaults.elements.point.hoverRadius = 0;
+    Chart.defaults.elements.point.hitRadius = 0;
+    </script>
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+        }
+        
+        .header {
+            position: relative;
+            background: linear-gradient(to right, #1e40af, #1d4ed8, #059669);
+            color: white;
+            padding: 2rem;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 2rem;
+        }
+        
+        .header-text {
+            flex: 1;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .location-info {
+            font-size: 1.25rem;
+        }
+        
+        .location-info p:last-child {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .site-map {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+        }
+        
+        .site-map h3 {
+            color: #374151;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .site-map p {
+            color: #6b7280;
+            font-size: 0.875rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .topo-map {
+            border: 2px solid #d1d5db;
+            border-radius: 0.375rem;
+            position: relative;
+            overflow: visible;
+            background: #ffffff;
+        }
+        
+        .cross-line-v {
+            position: absolute;
+            left: 50%;
+            top: 1rem;
+            bottom: 1rem;
+            width: 2px;
+            background: black;
+            transform: translateX(-50%);
+            z-index: 20;
+        }
+        
+        .cross-line-h {
+            position: absolute;
+            top: 50%;
+            left: 1rem;
+            right: 1rem;
+            height: 2px;
+            background: black;
+            transform: translateY(-50%);
+            z-index: 20;
+        }
+        
+        .marker {
+            position: absolute;
+            background: white;
+            border: 2px solid black;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 30;
+        }
+        
+        .logo-area {
+        .hero-logo {
+            position: absolute;
+            left: 1.25rem;
+            bottom: 4.5rem;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
+            position: absolute;
+            bottom: 0.5rem;
+            left: 0.5rem;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 10px;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .navd88 {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-size: 10px;
+        }
+        
+        .date-info {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .controls-inner {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .water-control {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .water-control label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .water-slider {
+            width: 200px;
+            height: 8px;
+            background: #bfdbfe;
+            border-radius: 4px;
+            outline: none;
+            appearance: none;
+        }
+        
+        .water-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #2563eb;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .water-value {
+            background: #dbeafe;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            color: #1e40af;
+        }
+        
+        .print-btn {
+            background: #1d4ed8;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .print-btn:hover {
+            background: #1e40af;
+        }
+        
+        .stats {
+            padding: 2rem;
+            background: white;
+        }
+        
+        .stats h3 {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 1rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .stat-card {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            border: 2px solid;
+        }
+        
+        .stat-card.blue {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+        
+        .stat-card.green {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+        
+        .stat-card.amber {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+        
+        .stat-card.purple {
+            background: #faf5ff;
+            border-color: #ddd6fe;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .stat-card.blue .stat-value { color: #1e40af; }
+        .stat-card.green .stat-value { color: #166534; }
+        .stat-card.amber .stat-value { color: #92400e; }
+        .stat-card.purple .stat-value { color: #7c2d12; }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        .charts {
+            padding: 2rem;
+        }
+        
+        .chart-container {
+            background: linear-gradient(to bottom, #eff6ff, #f0fdf4);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #374151;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .chart-canvas {
+            position: relative;
+            height: 400px;
+        }
+        
+        .footer {
+            background: #374151;
+            color: white;
+            padding: 2rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-left .company-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #93c5fd;
+        }
+        
+        .footer-left .tagline {
+            color: #bfdbfe;
+        }
+        
+        .footer-left .website {
+            font-size: 0.875rem;
+            color: #d1d5db;
+            margin-top: 0.25rem;
+        }
+        
+        .footer-right {
+            text-align: right;
+            font-size: 0.875rem;
+            color: #d1d5db;
+        }
+    
+        .site-image {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            object-fit: contain;
+        }
+
+
+        .site-pdf {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0.375rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+<!-- Header -->
+<div class="header">
+<div class="header-content">
+<div class="header-text">
+<h1>Wetland Cross-Section Analysis</h1>
+<h2>Tower Land Company, LLC</h2>
+<div class="location-info">
+<p>Chloe Tract</p>
+<p>Sec. 30 - T 9S - R 7W, Calcasieu Parish, Louisiana</p>
+</div>
+</div>
+<div class="site-map">
+<h3>Site Location Map</h3>
+<p>Cross-Section Lines A-A' &amp; B-B'</p>
+<div class="topo-map"><img alt="Wetland Topo Map" class="site-image" src="wetland-topo-map.jpg" style="width:100%; height:auto; object-fit:contain;"/></div>
+<div style="text-align: right; margin-top: 0.5rem;">
+<div style="color: #1d4ed8; font-weight: bold; font-size: 0.75rem;">HEADWATERS INC.</div>
+<div style="color: #2563eb; font-size: 0.75rem;">www.headwaters-inc.com</div>
+</div>
+</div>
+</div>
+<div class="date-info">
+<div>Report Date: <span id="current-date"></span></div>
+<div>NAD 1983 2011 StatePlane Louisiana South</div>
+</div>
+<img alt="HEADWATERS Logo" class="hero-logo" src="Logo.jpg" style="max-height:80px; width:auto;"/>
+</div>
+<!-- Controls -->
+<div class="controls">
+<div class="controls-inner">
+<div class="water-control">
+<label>Water Level Scenario:</label>
+<input class="water-slider" id="waterSlider" max="8" min="2" step="0.2" type="range" value="4.5"/>
+<span class="water-value"><span id="waterValue">4.5</span> ft</span>
+</div>
+<button class="print-btn" onclick="window.print()">Print Report</button>
+</div>
+</div>
+<!-- Statistics -->
+<div class="stats">
+<h3>Hydrological Assessment Summary</h3>
+<div class="stats-grid">
+<div class="stat-card blue">
+<div class="stat-value" id="nsPercent">0.0</div>
+<div class="stat-label">A-A' Wetland Coverage</div>
+</div>
+<div class="stat-card green">
+<div class="stat-value" id="ewPercent">0.0</div>
+<div class="stat-label">B-B' Wetland Coverage</div>
+</div>
+<div class="stat-card amber">
+<div class="stat-value" id="currentWater">4.5</div>
+<div class="stat-label">Current Water Level</div>
+</div>
+<div class="stat-card purple">
+<div class="stat-value" id="maxElev">0.0</div>
+<div class="stat-label">Maximum Elevation</div>
+</div>
+</div>
+</div>
+<!-- Charts -->
+<div class="charts">
+<div class="chart-container">
+<h3 class="chart-title">Cross-Section A-A' (North-South) - 385 feet</h3>
+<div class="chart-canvas">
+<canvas id="nsChart"></canvas>
+</div>
+</div>
+<div class="chart-container">
+<h3 class="chart-title">Cross-Section B-B' (East-West) - 275 feet</h3>
+<div class="chart-canvas">
+<canvas id="ewChart"></canvas>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<div class="footer">
+<div class="footer-content">
+<div class="footer-left">
+<div class="company-name">HEADWATERS</div>
+<div class="tagline">Environmental Consulting &amp; Engineering</div>
+<div class="website">www.headwaters-inc.com</div>
+</div>
+<div class="footer-right">
+<p>Tower Land Company, LLC - Chloe Tract</p>
+<p>Wetland Cross-Section Analysis</p>
+<p>Report Generated: <span id="footer-date"></span></p>
+</div>
+</div>
+</div>
+</div>
+<script>
+        // Set current date
+        const currentDate = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        document.getElementById('current-date').textContent = currentDate;
+        document.getElementById('footer-date').textContent = currentDate;
+        
+        // Sample wetland data (replace with your actual CSV data)
+        const nsData = [];
+        const ewData = [];
+        
+        // Generate sample data for demonstration
+        for (let i = 0; i < 92; i++) {
+            const distance = (i / 91) * 385;
+            const normalizedPos = (distance - 192.5) / 192.5;
+            const baseElevation = 4.5 - 2.8 * Math.exp(-Math.pow(normalizedPos * 1.4, 2));
+            const noise = (Math.random() - 0.5) * 0.6;
+            const elevation = Math.max(1.5, Math.min(8.5, baseElevation + noise));
+            
+            nsData.push({ distance, elevation });
+        }
+        
+        for (let i = 0; i < 61; i++) {
+            const distance = (i / 60) * 275;
+            const normalizedPos = (distance - 137.5) / 137.5;
+            const baseElevation = 5.2 - 2.2 * Math.exp(-Math.pow(normalizedPos * 1.2, 2));
+            const noise = (Math.random() - 0.5) * 0.5;
+            const elevation = Math.max(2.0, Math.min(9.0, baseElevation + noise));
+            
+            ewData.push({ distance, elevation });
+        }
+        
+        let waterLevel = 4.5;
+        let nsChart, ewChart;
+        
+        // Water level control
+        const waterSlider = document.getElementById('waterSlider');
+        const waterValue = document.getElementById('waterValue');
+        
+        waterSlider.addEventListener('input', function() {
+            waterLevel = parseFloat(this.value);
+            waterValue.textContent = waterLevel.toFixed(1);
+            document.getElementById('currentWater').textContent = waterLevel.toFixed(1);
+            updateCharts();
+            updateStats();
+        });
+        
+        // Chart setup
+        function createChart(canvasId, data, title) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.distance.toFixed(0)),
+                    datasets: [{
+                        label: 'Ground Elevation',
+                        data: data.map(d => d.elevation),
+                        borderColor: '#8B4513',
+                        backgroundColor: 'rgba(139, 69, 19, 0.3)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3
+                    }, {
+                        label: 'Water Level',
+                        data: new Array(data.length).fill(waterLevel),
+                        borderColor: '#0EA5E9',
+                        borderDash: [8, 4],
+                        borderWidth: 3,
+                        fill: false,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Distance (feet)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Elevation (feet NAVD88)'
+                            },
+                            min: 1,
+                            max: 10
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title
+                        },
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateCharts() {
+            // Update water level line in both charts
+            nsChart.data.datasets[1].data = new Array(nsData.length).fill(waterLevel);
+            ewChart.data.datasets[1].data = new Array(ewData.length).fill(waterLevel);
+            
+            nsChart.update();
+            ewChart.update();
+        }
+        
+        function updateStats() {
+            // Calculate wetland coverage
+            const nsWetPoints = nsData.filter(d => d.elevation < waterLevel).length;
+            const ewWetPoints = ewData.filter(d => d.elevation < waterLevel).length;
+            
+            const nsPercent = ((nsWetPoints / nsData.length) * 100).toFixed(1);
+            const ewPercent = ((ewWetPoints / ewData.length) * 100).toFixed(1);
+            
+            document.getElementById('nsPercent').textContent = nsPercent + '%';
+            document.getElementById('ewPercent').textContent = ewPercent + '%';
+            
+            // Update max elevation
+            const allElevations = [...nsData, ...ewData].map(d => d.elevation);
+            const maxElev = Math.max(...allElevations).toFixed(1);
+            document.getElementById('maxElev').textContent = maxElev + ' ft';
+        }
+        
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {
+            nsChart = createChart('nsChart', nsData, 'Cross-Section A-A\' (North-South)');
+            ewChart = createChart('ewChart', ewData, 'Cross-Section B-B\' (East-West)');
+            updateStats();
+        });
+    </script>
+</body>
+</html>
